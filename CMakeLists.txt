@@ -7,14 +7,15 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 # PCL
-find_package(PCL 1.9 REQUIRED)
+find_package(PCL 1.11 REQUIRED)
 #find_package(PCL 1.8 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # OpenCV
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4.2 REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 #find_package(OpenCV REQUIRED PATHS /usr/local NO_DEFAULT_PATH)
 
 ## Set compiler optimization flags
@@ -26,7 +27,7 @@ find_package(OpenCV REQUIRED)
 # set(CMAKE_CXX_FLAGS "-frename-registers -Ofast -march=native -fopenmp -fPIC -Wno-deprecated -Wenum-compare") # no improvement
 
 #set(CMAKE_CXX_FLAGS "-fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
-set(CMAKE_CXX_FLAGS "-O3 -march=native -mtune=intel -msse4.2 -mavx2 -mfma -flto -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
+set(CMAKE_CXX_FLAGS " -march=native -mtune=intel -msse4.2 -mavx2 -mfma -flto -fopenmp -fPIC -Wno-deprecated -Wenum-compare -Wno-ignored-attributes -std=c++17")
 
 ## Specify additional locations of header files
 include_directories(include ${PCL_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
@@ -270,7 +271,8 @@ target_link_libraries(${PROJECT_NAME}_cem_detect_grasps
 
 target_link_libraries(${PROJECT_NAME}_image_generator
   ${PROJECT_NAME}_hand_set
-  ${PROJECT_NAME}_image_strategy)
+  ${PROJECT_NAME}_image_strategy
+  ${OpenCV_LIBS})
 
 # Rename targets to simplify their names.
 set_target_properties(${PROJECT_NAME}_test_grasp_image
