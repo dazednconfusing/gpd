@@ -39,6 +39,7 @@ namespace gpd
     std::vector<double> approach =
         config_file.getValueOfKeyAsStdVectorDouble("direction", "1 0 0");
 
+    // Actual mew change after fork start
     // Perform transform to optical frame
     Eigen::Quaterniond opt(0.5, -0.5, 0.5, -0.5);
     Eigen::Quaterniond cam(0.912, 0.0, 0.409, 0.0);
@@ -47,6 +48,7 @@ namespace gpd
     approach.at(0) = new_approach(0);
     approach.at(1) = new_approach(1);
     approach.at(2) = new_approach(2);
+    // Actual mew change after fork end
     direction_ << approach[0], approach[1], approach[2];
     thresh_rad_ = config_file.getValueOfKey<double>("thresh_rad", 2.3);
 
