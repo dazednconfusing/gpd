@@ -39,17 +39,6 @@ namespace gpd
     std::vector<double> approach =
         config_file.getValueOfKeyAsStdVectorDouble("direction", "1 0 0");
 
-    // Actual mew change after fork start
-    // Perform transform to optical frame
-    Eigen::Quaterniond opt(0.5, -0.5, 0.5, -0.5);
-    Eigen::Quaterniond cam(0.912, 0.0, 0.409, 0.0);
-
-    Eigen::Vector3d new_approach = opt * cam * Eigen::Vector3d(approach.at(0), approach.at(1), approach.at(2));
-    approach.at(0) = new_approach(0);
-    approach.at(1) = new_approach(1);
-    approach.at(2) = new_approach(2);
-    // Actual mew change after fork end
-    direction_ << approach[0], approach[1], approach[2];
     thresh_rad_ = config_file.getValueOfKey<double>("thresh_rad", 2.3);
 
     visualize_rounds_ =
@@ -59,6 +48,10 @@ namespace gpd
         config_file.getValueOfKey<bool>("visualize_results", false);
 
     grasp_detector_ = std::make_unique<GraspDetector>(config_filename);
+
+    // Perform transform to optical frame
+    Eigen::Vector3d approach = grasp_detector->BaseToOptFrame(approach);
+    direction_ << approach[0], approach[1], approach[2];
 
     int min_inliers = config_file.getValueOfKey<int>("min_inliers", 1);
     clustering_ = std::make_unique<Clustering>(min_inliers);

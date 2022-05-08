@@ -90,6 +90,20 @@ namespace gpd
     candidates_generator_ = std::make_unique<candidate::CandidatesGenerator>(
         generator_params, hand_search_params);
 
+    // Camera transforms
+    std::vector<double> tf_base_cam = config_file.getValueOfKeyAsStdVectorDouble("trans_base_cam", "0, 0, 0.57, 0, 0.707, 0");
+    std::vector<double> tf_cam_opt =
+        config_file.getValueOfKeyAsStdVectorDouble("trans_cam_opt", "0, 0, 0, -1.57, 0, -1.57");
+
+    base_cam_trans_(tf_base_cam.begin(), tf_base_cam.begin() + 3);
+    base_cam_rot_(quaternionFromRPY(tf_base_cam[3], tf_base_cam[4], tf_base_cam[5]));
+
+    cam_opt_trans_(tf_base_cam.begin(), tf_cam_opt.begin() + 3);
+    cam_opt_rot_(quaternionFromRPY(tf_cam_opt[3], tf_cam_opt[4], tf_cam_opt[5]));
+
+    printf("============ CLOUD PREPROCESSING =============\n");
+    printf("Transform cam to opt quaternion: w: %f x: %f y: %f z: %f\n", cam_opt_rot_.w(), cam_opt_rot_.x(), cam_opt_rot_.y(), cam_opt_rot_.z());
+
     printf("============ CLOUD PREPROCESSING =============\n");
     printf("voxelize: %s\n", generator_params.voxelize_ ? "true" : "false");
     printf("voxel_size: %.3f\n", generator_params.voxel_size_);
@@ -163,7 +177,7 @@ namespace gpd
     workspace_grasps_ = config_file.getValueOfKeyAsStdVectorDouble(
         "workspace_grasps", "-1 1 -1 1 -1 1");
     min_aperture_ = config_file.getValueOfKey<double>("min_aperture", 0.0);
-    max_aperture_ = config_file.getValueOfKey<double>("max_aperture", 0.085);
+    max_aperture_ = config_file.getValueOfKey<double>("max_aperture", 0.045);
     printf("============ CANDIDATE FILTERING =============\n");
     printStdVector(workspace_grasps_, "candidate_workspace");
     printf("min_aperture: %3.4f\n", min_aperture_);
@@ -179,10 +193,8 @@ namespace gpd
 
     // Actual new change after fork start
     // Perform transform to optical frame
-    Eigen::Quaterniond opt(0.5, -0.5, 0.5, -0.5);
-    Eigen::Quaterniond cam(0.912, 0.0, 0.409, 0.0);
 
-    Eigen::Vector3d new_approach = opt * cam * Eigen::Vector3d(approach.at(0), approach.at(1), approach.at(2));
+    Eigen::Vector3d new_approach = BaseToOptFrame(approach);
     approach.at(0) = new_approach(0);
     approach.at(1) = new_approach(1);
     approach.at(2) = new_approach(2);
@@ -367,13 +379,22 @@ namespace gpd
     return clusters;
   }
 
+  Eigen::Vector3d GraspDetector::OptToBaseFrame(Eigen::Vector3d in)
+  {
+    return base_cam_rot_ * cam_opt_rot_ * in;
+  }
+
+  Eigen::Vector3d GraspDetector::BaseToOptFrame(Eigen::Vector3d in)
+  {
+    return cam_opt_.inverse() * base_cam_rot_.inverse() * in;
+  }
+
   void GraspDetector::preprocessPointCloud(util::Cloud &cloud)
   {
     candidates_generator_->preprocessPointCloud(cloud);
   }
 
-  std::vector<std::unique_ptr<candidate::HandSet>>
-  GraspDetector::filterGraspsWorkspace(
+  std::vector<std::unique_ptr<candidate::HandSet>> GraspDetector::filterGraspsWorkspace(
       std::vector<std::unique_ptr<candidate::HandSet>> &hand_set_list,
       const std::vector<double> &workspace) const
   {
@@ -408,6 +429,13 @@ namespace gpd
             left_bottom + hand_geometry.depth_ * hands[j]->getApproach();
         Eigen::Vector3d approach =
             hands[j]->getPosition() - 0.05 * hands[j]->getApproach();
+
+        // Transform to base frame
+        left_bottom = OptToBaseFrame(left_bottom);
+        right_bottom = OptToBaseFrame(right_bottom);
+        left_top = OptToBaseFrame(left_top);
+        right_top = OptToBaseFrame(right_top);
+        approach = OptToBaseFrame(approach);
         Eigen::VectorXd x(5), y(5), z(5);
         x << left_bottom(0), right_bottom(0), left_top(0), right_top(0),
             approach(0);
@@ -420,7 +448,7 @@ namespace gpd
         // workspace.
         if (hands[j]->getGraspWidth() >= min_aperture_ &&
             hands[j]->getGraspWidth() <= max_aperture_ &&
-            x.minCoeff() >= workspace[0] && x.maxCoeff() <= workspace[1] &&
+            (x.minCoeff() * Eigen::Vector3d::UnitX()) >= workspace[0] && x.maxCoeff() <= workspace[1] &&
             y.minCoeff() >= workspace[2] && y.maxCoeff() <= workspace[3] &&
             z.minCoeff() >= workspace[4] && z.maxCoeff() <= workspace[5])
         {

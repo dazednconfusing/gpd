@@ -157,6 +157,10 @@ class GraspDetector {
   std::vector<std::unique_ptr<candidate::Hand>> selectGrasps(
       std::vector<std::unique_ptr<candidate::Hand>> &hands) const;
 
+  Eigen::Vector3d OptToBaseFrame(Eigen::Vector3d in);
+
+  Eigen::Vector3d BaseToOptFrame(Eigen::Vector3d in);
+
   /**
    * \brief Compare the scores of two given grasps.
    * \param hand1 the first grasp to be compared
@@ -183,6 +187,25 @@ class GraspDetector {
    */
   const descriptor::ImageGeometry &getImageGeometry() const {
     return image_generator_->getImageGeometry();
+  }
+
+  /**
+   * \brief Return a quaternion from extrinsic rpy
+   * \return quaternion
+   */
+  static Eigen::Quaterniond quaternionFromRPY(const double r, const double p, const double y)
+  {
+      Eigen::AngleAxisd rollAngle(r, Eigen::Vector3d::UnitX());
+      Eigen::AngleAxisd pitchAngle(p, Eigen::Vector3d::UnitY());
+      Eigen::AngleAxisd yawAngle(y, Eigen::Vector3d::UnitZ());
+
+      Eigen::Quaterniond q = rollAngle * pitchAngle * yawAngle;
+      return q;
+  };
+
+  static Eigen::Quaterniond quaternionFromRPY(const std::vector<double> rpy)
+  {
+      return quaternionFromRPY(rpy[0], rpy[1], rpy[2]);
   }
 
  private:
@@ -223,6 +246,12 @@ class GraspDetector {
 
   // selection parameters
   int num_selected_;  ///< the number of selected grasps
+
+  // Transform params
+  Eigen::Vector3d base_cam_trans_;
+  Eigen::Quaterniond base_cam_rot_;
+  Eigen::Vector3d cam_opt_trans_;
+  Eigen::Quaterniond cam_opt_rot_;
 };
 
 }  // namespace gpd
