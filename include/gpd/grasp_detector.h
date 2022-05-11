@@ -65,113 +65,119 @@ namespace gpd {
  */
 class GraspDetector {
  public:
-  /**
-   * \brief Constructor.
-   * \param node ROS node handle
-   */
-  GraspDetector(const std::string &config_filename);
+     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+         /**
+          * \brief Constructor.
+          * \param node ROS node handle
+          */
+         GraspDetector(const std::string& config_filename);
 
-  /**
-   * \brief Detect grasps in a point cloud.
-   * \param cloud_cam the point cloud
-   * \return list of grasps
-   */
-  std::vector<std::unique_ptr<candidate::Hand>> detectGrasps(
-      const util::Cloud &cloud);
+     /**
+      * \brief Detect grasps in a point cloud.
+      * \param cloud_cam the point cloud
+      * \return list of grasps
+      */
+     std::vector<std::unique_ptr<candidate::Hand>> detectGrasps(
+         const util::Cloud& cloud);
 
-  /**
-   * \brief Preprocess the point cloud.
-   * \param cloud_cam the point cloud
-   */
-  void preprocessPointCloud(util::Cloud &cloud);
+     /**
+      * \brief Preprocess the point cloud.
+      * \param cloud_cam the point cloud
+      */
+     void preprocessPointCloud(util::Cloud& cloud);
 
-  /**
-   * Filter grasps based on the robot's workspace.
-   * \param hand_set_list list of grasp candidate sets
-   * \param workspace the robot's workspace as a 3D cube, centered at the origin
-   * \param thresh_rad the angle in radians above which grasps are filtered
-   * \return list of grasps after filtering
-   */
-  std::vector<std::unique_ptr<candidate::HandSet>> filterGraspsWorkspace(
-      std::vector<std::unique_ptr<candidate::HandSet>> &hand_set_list,
-      const std::vector<double> &workspace) const;
+     /**
+      * Filter grasps based on the robot's workspace.
+      * \param hand_set_list list of grasp candidate sets
+      * \param workspace the robot's workspace as a 3D cube, centered at the origin
+      * \param thresh_rad the angle in radians above which grasps are filtered
+      * \return list of grasps after filtering
+      */
+     std::vector<std::unique_ptr<candidate::HandSet>> filterGraspsWorkspace(
+         std::vector<std::unique_ptr<candidate::HandSet>>& hand_set_list,
+         const std::vector<double>& workspace) const;
 
-  /**
-   * Filter grasps based on their approach direction.
-   * \param hand_set_list list of grasp candidate sets
-   * \param direction the direction used for filtering
-   * \param thresh_rad the angle in radians above which grasps are filtered
-   * \return list of grasps after filtering
-   */
-  std::vector<std::unique_ptr<candidate::HandSet>> filterGraspsDirection(
-      std::vector<std::unique_ptr<candidate::HandSet>> &hand_set_list,
-      const Eigen::Vector3d &direction, const double thresh_rad);
+     /**
+      * Filter grasps based on their approach direction.
+      * \param hand_set_list list of grasp candidate sets
+      * \param direction the direction used for filtering
+      * \param thresh_rad the angle in radians above which grasps are filtered
+      * \return list of grasps after filtering
+      */
+     std::vector<std::unique_ptr<candidate::HandSet>> filterGraspsDirection(
+         std::vector<std::unique_ptr<candidate::HandSet>>& hand_set_list,
+         const Eigen::Vector3d& direction, const double thresh_rad);
 
-  /**
-   * \brief Generate grasp candidates.
-   * \param cloud the point cloud
-   * \return the list of grasp candidates
-   */
-  std::vector<std::unique_ptr<candidate::HandSet>> generateGraspCandidates(
-      const util::Cloud &cloud);
+     /**
+      * \brief Generate grasp candidates.
+      * \param cloud the point cloud
+      * \return the list of grasp candidates
+      */
+     std::vector<std::unique_ptr<candidate::HandSet>> generateGraspCandidates(
+         const util::Cloud& cloud);
 
-  /**
-   * \brief Create grasp images and candidates for a given point cloud.
-   * \param cloud the point cloud
-   * \param[out] hands_out the grasp candidates
-   * \param[out] images_out the grasp images
-   * \return `false` if no grasp candidates are found, `true` otherwise
-   */
-  bool createGraspImages(
-      util::Cloud &cloud,
-      std::vector<std::unique_ptr<candidate::Hand>> &hands_out,
-      std::vector<std::unique_ptr<cv::Mat>> &images_out);
+     /**
+      * \brief Create grasp images and candidates for a given point cloud.
+      * \param cloud the point cloud
+      * \param[out] hands_out the grasp candidates
+      * \param[out] images_out the grasp images
+      * \return `false` if no grasp candidates are found, `true` otherwise
+      */
+     bool createGraspImages(
+         util::Cloud& cloud,
+         std::vector<std::unique_ptr<candidate::Hand>>& hands_out,
+         std::vector<std::unique_ptr<cv::Mat>>& images_out);
 
-  /**
-   * \brief Evaluate the ground truth for a given list of grasps.
-   * \param cloud_gt the point cloud (typically a mesh)
-   * \param hands the grasps
-   * \return the ground truth label for each grasp
-   */
-  std::vector<int> evalGroundTruth(
-      const util::Cloud &cloud_gt,
-      std::vector<std::unique_ptr<candidate::Hand>> &hands);
+     /**
+      * \brief Evaluate the ground truth for a given list of grasps.
+      * \param cloud_gt the point cloud (typically a mesh)
+      * \param hands the grasps
+      * \return the ground truth label for each grasp
+      */
+     std::vector<int> evalGroundTruth(
+         const util::Cloud& cloud_gt,
+         std::vector<std::unique_ptr<candidate::Hand>>& hands);
 
-  /**
-   * \brief Creates grasp images and prunes grasps below a given score.
-   * \param cloud the point cloud
-   * \param hand_set_list the grasps
-   * \param min_score the score below which grasps are pruned
-   * \return the grasps above the score
-   */
-  std::vector<std::unique_ptr<candidate::Hand>> pruneGraspCandidates(
-      const util::Cloud &cloud,
-      const std::vector<std::unique_ptr<candidate::HandSet>> &hand_set_list,
-      double min_score);
+     /**
+      * \brief Creates grasp images and prunes grasps below a given score.
+      * \param cloud the point cloud
+      * \param hand_set_list the grasps
+      * \param min_score the score below which grasps are pruned
+      * \return the grasps above the score
+      */
+     std::vector<std::unique_ptr<candidate::Hand>> pruneGraspCandidates(
+         const util::Cloud& cloud,
+         const std::vector<std::unique_ptr<candidate::HandSet>>& hand_set_list,
+         double min_score);
 
-  /**
-   * \brief Select the k highest scoring grasps.
-   * \param hands the grasps
-   * \return the k highest scoring grasps
-   */
-  std::vector<std::unique_ptr<candidate::Hand>> selectGrasps(
-      std::vector<std::unique_ptr<candidate::Hand>> &hands) const;
+     /**
+      * \brief Select the k highest scoring grasps.
+      * \param hands the grasps
+      * \return the k highest scoring grasps
+      */
+     std::vector<std::unique_ptr<candidate::Hand>> selectGrasps(
+         std::vector<std::unique_ptr<candidate::Hand>>& hands) const;
 
-  Eigen::Vector3d OptToBaseFrame(Eigen::Vector3d in);
+     Eigen::Vector3d OptToBaseFrame(const Eigen::Vector3d& in) const;
 
-  Eigen::Vector3d BaseToOptFrame(Eigen::Vector3d in);
+     Eigen::Vector3d OptToBaseFrame(const std::vector<double>& in) const;
 
-  /**
-   * \brief Compare the scores of two given grasps.
-   * \param hand1 the first grasp to be compared
-   * \param hand1 the second grasp to be compared
-   * \return `true` if \param hand1 has a larger score than \param hand2,
-   * `false` otherwise
-   */
-  static bool isScoreGreater(const std::unique_ptr<candidate::Hand> &hand1,
-                             const std::unique_ptr<candidate::Hand> &hand2) {
-    return hand1->getScore() > hand2->getScore();
-  }
+     Eigen::Vector3d BaseToOptFrame(const Eigen::Vector3d& in) const;
+
+     Eigen::Vector3d BaseToOptFrame(const std::vector<double>& in) const;
+
+     /**
+      * \brief Compare the scores of two given grasps.
+      * \param hand1 the first grasp to be compared
+      * \param hand1 the second grasp to be compared
+      * \return `true` if \param hand1 has a larger score than \param hand2,
+      * `false` otherwise
+      */
+     static bool isScoreGreater(const std::unique_ptr<candidate::Hand>& hand1,
+         const std::unique_ptr<candidate::Hand>& hand2)
+     {
+         return hand1->getScore() > hand2->getScore();
+     }
 
   /**
    * \brief Return the hand search parameters.
@@ -189,26 +195,7 @@ class GraspDetector {
     return image_generator_->getImageGeometry();
   }
 
-  /**
-   * \brief Return a quaternion from extrinsic rpy
-   * \return quaternion
-   */
-  static Eigen::Quaterniond quaternionFromRPY(const double r, const double p, const double y)
-  {
-      Eigen::AngleAxisd rollAngle(r, Eigen::Vector3d::UnitX());
-      Eigen::AngleAxisd pitchAngle(p, Eigen::Vector3d::UnitY());
-      Eigen::AngleAxisd yawAngle(y, Eigen::Vector3d::UnitZ());
-
-      Eigen::Quaterniond q = rollAngle * pitchAngle * yawAngle;
-      return q;
-  };
-
-  static Eigen::Quaterniond quaternionFromRPY(const std::vector<double> rpy)
-  {
-      return quaternionFromRPY(rpy[0], rpy[1], rpy[2]);
-  }
-
- private:
+private:
   void printStdVector(const std::vector<int> &v, const std::string &name) const;
 
   void printStdVector(const std::vector<double> &v,
@@ -249,9 +236,9 @@ class GraspDetector {
 
   // Transform params
   Eigen::Vector3d base_cam_trans_;
-  Eigen::Quaterniond base_cam_rot_;
+  Eigen::VectorXd base_cam_rot_;
   Eigen::Vector3d cam_opt_trans_;
-  Eigen::Quaterniond cam_opt_rot_;
+  Eigen::VectorXd cam_opt_rot_;
 };
 
 }  // namespace gpd

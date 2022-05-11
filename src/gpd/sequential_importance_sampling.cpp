@@ -50,8 +50,7 @@ namespace gpd
     grasp_detector_ = std::make_unique<GraspDetector>(config_filename);
 
     // Perform transform to optical frame
-    Eigen::Vector3d approach = grasp_detector->BaseToOptFrame(approach);
-    direction_ << approach[0], approach[1], approach[2];
+    Eigen::Vector3d direction_ = grasp_detector_->BaseToOptFrame(approach);
 
     int min_inliers = config_file.getValueOfKey<int>("min_inliers", 1);
     clustering_ = std::make_unique<Clustering>(min_inliers);
