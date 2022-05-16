@@ -201,14 +201,14 @@ class Cloud {
    * \param[in] workspace a 6-D vector containing the workspace limits: [minX,
    * maxX, minY, maxY, minZ, maxZ]
    */
-  void filterWorkspace(const std::vector<double> &workspace);
+  void filterWorkspace(const std::vector<double>& workspace, const Eigen::Isometry3d& transform_base_opt);
 
   /**
    * \brief Filter out samples that lie outside the workspace dimensions.
    * \param[in] workspace a 6-D vector containing the workspace limits: [minX,
    * maxX, minY, maxY, minZ, maxZ]
    */
-  void filterSamples(const std::vector<double> &workspace);
+  void filterSamples(const std::vector<double>& workspace, const Eigen::Isometry3d& transform_base_opt);
 
   /**
    * \brief Voxelize the point cloud and keep track of the camera source for

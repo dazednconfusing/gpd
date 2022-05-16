@@ -93,7 +93,7 @@ class CandidatesGenerator {
    * \brief Preprocess the point cloud.
    * \param cloud_cam the point cloud
    */
-  void preprocessPointCloud(util::Cloud &cloud);
+  void preprocessPointCloud(util::Cloud& cloud, const Eigen::Isometry3d& transform_base_opt);
 
   /**
    * \brief Generate grasp candidates given a point cloud.
@@ -137,6 +137,7 @@ class CandidatesGenerator {
   std::unique_ptr<candidate::HandSearch> hand_search_;
 
   Parameters params_;
+
 };
 
 }  // namespace candidate

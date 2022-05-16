@@ -440,9 +440,9 @@ Eigen::Vector3d GraspDetector::BaseToOptFrame(const std::vector<double>& in) con
   return BaseToOptFrame(vec);
 }
 
-void GraspDetector::preprocessPointCloud(util::Cloud& cloud)
+void GraspDetector::preprocessPointCloud(util::Cloud& cloud, const Eigen::Isometry3d& transform_base_opt)
 {
-  candidates_generator_->preprocessPointCloud(cloud);
+  candidates_generator_->preprocessPointCloud(cloud, transform_base_opt);
 }
 
 std::vector<std::unique_ptr<candidate::HandSet>> GraspDetector::filterGraspsWorkspace(

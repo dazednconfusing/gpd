@@ -203,15 +203,19 @@ void Cloud::refineNormals(int k) {
                  .cast<double>();
 }
 
-void Cloud::filterWorkspace(const std::vector<double> &workspace) {
+void Cloud::filterWorkspace(const std::vector<double>& workspace, const Eigen::Isometry3d& transform_base_opt) {
   // Filter indices into the point cloud.
   if (sample_indices_.size() > 0) {
     std::vector<int> indices_to_keep;
 
     for (int i = 0; i < sample_indices_.size(); i++) {
       const pcl::PointXYZRGBA &p = cloud_processed_->points[sample_indices_[i]];
-      if (p.x > workspace[0] && p.x < workspace[1] && p.y > workspace[2] &&
-          p.y < workspace[3] && p.z > workspace[4] && p.z < workspace[5]) {
+      Eigen::Vector3d base_sample;
+      base_sample << p.x, p.y, p.z;
+      base_sample = transform_base_opt * base_sample;
+      if (base_sample[0] > workspace[0] && base_sample[0] < workspace[1] &&
+        base_sample[1] > workspace[2] && base_sample[1] < workspace[3] &&
+        base_sample[2] > workspace[4] && base_sample[2] < workspace[5]) {
         indices_to_keep.push_back(i);
       }
     }
@@ -226,9 +230,12 @@ void Cloud::filterWorkspace(const std::vector<double> &workspace) {
     std::vector<int> indices_to_keep;
 
     for (int i = 0; i < samples_.cols(); i++) {
-      if (samples_(0, i) > workspace[0] && samples_(0, i) < workspace[1] &&
-          samples_(1, i) > workspace[2] && samples_(1, i) < workspace[3] &&
-          samples_(2, i) > workspace[4] && samples_(2, i) < workspace[5]) {
+      Eigen::Vector3d base_sample;
+      base_sample << samples_(0, i), samples_(1, i), samples_(2, i);
+      base_sample = transform_base_opt * base_sample;
+      if (base_sample[0] > workspace[0] && base_sample[0] < workspace[1] &&
+        base_sample[1] > workspace[2] && base_sample[1] < workspace[3] &&
+        base_sample[2] > workspace[4] && base_sample[2] < workspace[5]) {
         indices_to_keep.push_back(i);
       }
     }
@@ -242,8 +249,12 @@ void Cloud::filterWorkspace(const std::vector<double> &workspace) {
   std::vector<int> indices;
   for (int i = 0; i < cloud_processed_->size(); i++) {
     const pcl::PointXYZRGBA &p = cloud_processed_->points[i];
-    if (p.x > workspace[0] && p.x < workspace[1] && p.y > workspace[2] &&
-        p.y < workspace[3] && p.z > workspace[4] && p.z < workspace[5]) {
+    Eigen::Vector3d base_sample;
+    base_sample << p.x, p.y, p.z;
+    base_sample = transform_base_opt * base_sample;
+    if (base_sample[0] > workspace[0] && base_sample[0] < workspace[1] &&
+      base_sample[1] > workspace[2] && base_sample[1] < workspace[3] &&
+      base_sample[2] > workspace[4] && base_sample[2] < workspace[5]) {
       indices.push_back(i);
     }
   }
@@ -266,12 +277,15 @@ void Cloud::filterWorkspace(const std::vector<double> &workspace) {
   camera_source_ = camera_source;
 }
 
-void Cloud::filterSamples(const std::vector<double> &workspace) {
+void Cloud::filterSamples(const std::vector<double>& workspace, const Eigen::Isometry3d& transform_base_opt) {
   std::vector<int> indices;
   for (int i = 0; i < samples_.size(); i++) {
-    if (samples_(0, i) > workspace[0] && samples_(0, i) < workspace[1] &&
-        samples_(1, i) > workspace[2] && samples_(1, i) < workspace[3] &&
-        samples_(2, i) > workspace[4] && samples_(2, i) < workspace[5]) {
+    Eigen::Vector3d base_sample;
+    base_sample << samples_(0, i), samples_(1, i), samples_(2, i);
+    base_sample = transform_base_opt * base_sample;
+    if (base_sample[0] > workspace[0] && base_sample[0] < workspace[1] &&
+      base_sample[1] > workspace[2] && base_sample[1] < workspace[3] &&
+      base_sample[2] > workspace[4] && base_sample[2] < workspace[5]) {
       indices.push_back(i);
     }
   }

@@ -28,7 +28,33 @@ std::vector<double> stringToDouble(const std::string &str) {
 
   return values;
 }
+namespace
+{
+void quaternionFromRPY(const double r, const double p, const double y, Eigen::Quaterniond* const q)
+{
+  Eigen::AngleAxisd rollAngle(r, Eigen::Vector3d::UnitX());
+  Eigen::AngleAxisd pitchAngle(p, Eigen::Vector3d::UnitY());
+  Eigen::AngleAxisd yawAngle(y, Eigen::Vector3d::UnitZ());
 
+  // *q = rollAngle * pitchAngle * yawAngle;
+  *q = yawAngle * pitchAngle * rollAngle;
+};
+
+void quaternionFromRPY(const std::vector<double>& rpy, Eigen::Quaterniond* const q)
+{
+  quaternionFromRPY(rpy[0], rpy[1], rpy[2], q);
+}
+
+Eigen::Isometry3d OptToBaseFrame(const Eigen::Vector3d& base_cam_trans_,
+  const Eigen::VectorXd& base_cam_rot_,
+  const Eigen::Vector3d& cam_opt_trans_,
+  const Eigen::VectorXd& cam_opt_rot_)
+{
+  Eigen::Quaterniond cam_opt_q(cam_opt_rot_[0], cam_opt_rot_[1], cam_opt_rot_[2], cam_opt_rot_[3]);
+  Eigen::Quaterniond base_cam_q(base_cam_rot_[0], base_cam_rot_[1], base_cam_rot_[2], base_cam_rot_[3]);
+  return (Eigen::Translation3d(base_cam_trans_) * base_cam_q) * (Eigen::Translation3d(cam_opt_trans_) * cam_opt_q);
+}
+} // namespace
 int DoMain(int argc, char *argv[]) {
   // Read arguments from command line.
   if (argc < 3) {
@@ -104,6 +130,28 @@ int DoMain(int argc, char *argv[]) {
       config_file.getValueOfKey<bool>("plot_candidates", true);
   std::cout << "plot_candidates: " << plot_candidates << "\n";
 
+  // Camera transforms
+  std::vector<double> tf_base_cam =
+    config_file.getValueOfKeyAsStdVectorDouble("tf_base_cam", "0, 0, 0.57, 0, 0.707, 0");
+  std::vector<double> tf_cam_opt =
+    config_file.getValueOfKeyAsStdVectorDouble("tf_cam_opt", "0, 0, 0, -1.57, 0, -1.57");
+  Eigen::Vector3d base_cam_trans_;
+  Eigen::VectorXd base_cam_rot_;
+  Eigen::Vector3d cam_opt_trans_;
+  Eigen::VectorXd cam_opt_rot_;
+
+  base_cam_trans_ << tf_base_cam[0], tf_base_cam[1], tf_base_cam[2];
+  Eigen::Quaterniond base_cam_q;
+  quaternionFromRPY(tf_base_cam[3], tf_base_cam[4], tf_base_cam[5], &base_cam_q);
+  base_cam_rot_.resize(4);
+  base_cam_rot_ << base_cam_q.w(), base_cam_q.x(), base_cam_q.y(), base_cam_q.z();
+
+  cam_opt_trans_ << tf_cam_opt[0], tf_cam_opt[1], tf_cam_opt[2];
+  Eigen::Quaterniond cam_opt_q;
+  quaternionFromRPY(tf_cam_opt[3], tf_cam_opt[4], tf_cam_opt[5], &cam_opt_q);
+  cam_opt_rot_.resize(4);
+  cam_opt_rot_ << cam_opt_q.w(), cam_opt_q.x(), cam_opt_q.y(), cam_opt_q.z();
+
   // Create object to generate grasp candidates.
   candidate::CandidatesGenerator::Parameters generator_params;
   generator_params.num_samples_ = num_samples;
@@ -144,7 +192,11 @@ int DoMain(int argc, char *argv[]) {
 
   // Preprocess the point cloud: voxelize, remove statistical outliers,
   // workspace filter, compute normals, subsample.
-  candidates_generator.preprocessPointCloud(cloud);
+  Eigen::Isometry3d base_opt_trans = OptToBaseFrame(base_cam_trans_,
+    base_cam_rot_,
+    cam_opt_trans_,
+    cam_opt_rot_);
+  candidates_generator.preprocessPointCloud(cloud, base_opt_trans);
 
   // Generate a list of grasp candidates.
   std::vector<std::unique_ptr<candidate::Hand>> candidates =
