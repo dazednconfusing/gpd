@@ -132,8 +132,15 @@ int DoMain(int argc, char *argv[]) {
   }
 
   // Detect grasp poses.
-  detector.detectGrasps(cloud);
-
+   std::vector<std::unique_ptr<candidate::Hand>> grasps = detector.detectGrasps(cloud);
+  // for (auto& g: grasps) {
+  //   grasp_ptrs.push_back(std::unique_ptr<candidate::Hand>(&g));
+  // }
+  // printf("Eval GT ...\n");
+  //       std::vector<int> labels = detector.evalGroundTruth(cloud, grasps);
+  //       for (int label : labels) {
+  //         std::cout << "label: " << label << "\n";
+  //       }
   return 0;
 }
 

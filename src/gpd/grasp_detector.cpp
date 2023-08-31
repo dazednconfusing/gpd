@@ -338,7 +338,8 @@ std::vector<std::unique_ptr<candidate::Hand>> GraspDetector::detectGrasps(
   std::vector<std::unique_ptr<cv::Mat>> images;
   image_generator_->createImages(cloud, hand_set_list_filtered, images, hands);
   double t_images = omp_get_wtime() - t0_images;
-
+    printf("Eval GT ...\n");
+        std::vector<int> labels = evalGroundTruth(cloud, hands);
   // 4. Classify the grasp candidates.
   double t0_classify = omp_get_wtime();
   std::vector<float> scores = classifier_->classifyImages(images);

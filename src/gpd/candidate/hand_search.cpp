@@ -122,9 +122,13 @@ std::vector<int> HandSearch::reevaluateHypotheses(
         int label = labelHypothesis(nn_points_frame, finger_hand);
         if (label == Antipodal::FULL_GRASP) {
           labels[i] = 1;
+          std::cout << "FULL_GRASP\n";
           grasps[i]->setFullAntipodal(true);
         } else if (label == Antipodal::HALF_GRASP) {
+            std::cout << "HALF_GRASP\n";
           grasps[i]->setHalfAntipodal(true);
+        } else {
+            std::cout << "NO_GRASP\n";
         }
       }
     }
@@ -213,6 +217,7 @@ int HandSearch::labelHypothesis(const util::PointList &point_list,
   std::vector<int> indices_learning =
       finger_hand.computePointsInClosingRegion(point_list.getPoints());
   if (indices_learning.size() == 0) {
+    std::cout << "NO points in enclosing region\n";
     return Antipodal::NO_GRASP;
   }
 
